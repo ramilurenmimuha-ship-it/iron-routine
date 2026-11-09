@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090b0f">
+<title>IRON ROUTINE</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090b0f;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;padding:22px 16px 100px}
+header{display:flex;justify-content:space-between;align-items:center;margin:8px 0 35px}
+.logo{font-size:21px;font-weight:900;letter-spacing:1px}
+.muted{color:#858b98}
+h1{font-size:32px;line-height:1.1;margin:10px 0}
+h2{font-size:20px;margin:8px 0}
+h3{font-size:16px;margin:0 0 8px}
+p{color:#969daa;font-size:13px}
+.card{background:#171b22;border:1px solid #252a33;border-radius:17px;padding:17px;margin:13px 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stat{background:#171b22;padding:14px 9px;border-radius:13px}
+.stat strong{display:block;font-size:23px;margin-bottom:5px}
+.stat span{font-size:11px;color:#9299a5}
+button{border:0;border-radius:11px;padding:13px;background:#f0f0f0;color:#111;font-weight:750;font-size:14px;cursor:pointer}
+button:active{opacity:.75}
+.secondary{background:#252b34;color:#fff}
+.tabs{display:flex;gap:8px;margin:20px 0}
+.tabs button{flex:1;background:#191e26;color:#aab0ba}
+.tabs button.active{background:#f0f0f0;color:#111}
+.day{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tag{font-size:10px;color:#b8c0ce;background:#272e38;padding:5px 8px;border-radius:7px}
+.exercise{background:#171b22;border:1px solid #252a33;border-radius:15px;padding:15px;margin:10px 0}
+.exercise-top{display:flex;justify-content:space-between;gap:10px}
+.exercise input{width:100%;background:#0d1117;border:1px solid #303743;color:white;padding:11px;border-radius:9px;font-size:15px;margin-top:6px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.small{font-size:11px;color:#9299a5}
+.check{background:#242c36;color:white;width:100%;margin-top:11px}
+.check.done{background:#244b38;color:#a8f0c2}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#11151b;border-top:1px solid #292e38;display:flex;justify-content:space-around;padding:12px 4px calc(12px + env(safe-area-inset-bottom));z-index:5}
+.nav button{background:transparent;color:#9ba2ae;font-size:11px;padding:8px 10px}
+.nav button.active{color:white}
+.hidden{display:none!important}
+.timer{font-size:42px;font-weight:850;text-align:center;margin:15px}
+.full{width:100%;margin-top:10px}
+.progress{height:7px;background:#303640;border-radius:10px;overflow:hidden;margin:12px 0}
+.progress div{height:100%;background:#eee;width:0;transition:.2s}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">IRON<span style="color:#8c949f"> ROUTINE.</span></div>
+ <span class="tag">YOUR FITNESS</span>
+</header>
+
+<main id="app">
+<section id="home">
+ <p>WELCOME BACK</p>
+ <h1>BUILD YOUR<br>BODY.</h1>
+ <p>Discipline creates results.</p>
+ <div class="stats">
+  <div class="stat"><strong id="total">0</strong><span>Тренировок</span></div>
+  <div class="stat"><strong id="volume">0</strong><span>Подходов</span></div>
+  <div class="stat"><strong id="records">0</strong><span>Упражнений</span></div>
+ </div>
+ <h2 style="margin-top:30px">ТВОЯ ПРОГРАММА</h2>
+ <div id="days"></div>
+ <div class="card">
+  <p>WEEKLY GOAL</p>
+  <h2>4 тренировки в неделю</h2>
+  <div class="progress"><div id="weekbar"></div></div>
+  <span class="small" id="weektext">0 из 4 завершено</span>
+ </div>
+</section>
+
+<section id="training" class="hidden">
+ <p>YOUR WORKOUT</p>
+ <h1 id="workTitle">HOME WORKOUT</h1>
+ <div class="tabs">
+  <button id="homeTab" class="active" onclick="changeMode('home')">HOME</button>
+  <button id="streetTab" onclick="changeMode('street')">STREET</button>
+ </div>
+ <div id="exerciseList"></div>
+</section>
+
+<section id="stats" class="hidden">
+ <p>YOUR PERFORMANCE</p>
+ <h1>PROGRESS.</h1>
+ <div class="card">
+  <p>ЗАВЕРШЁННЫЕ ТРЕНИРОВКИ</p>
+  <h1 id="statTotal">0</h1>
+ </div>
+ <div class="card">
+  <p>ВЫПОЛНЕННЫЕ ПОДХОДЫ</p>
+  <h1 id="statSets">0</h1>
+ </div>
+ <h2>ИСТОРИЯ</h2>
+ <div id="history"></div>
+</section>
+
+<section id="rest" class="hidden">
+ <p>RECOVERY TIME</p>
+ <h1>REST TIMER.</h1>
+ <div class="card">
+  <div class="timer" id="clock">01:30</div>
+  <button class="full" onclick="startTimer()">СТАРТ</button>
+  <button class="full secondary" onclick="stopTimer()">СБРОС</button>
+  <div class="tabs">
+   <button onclick="setTimer(30)">30 сек</button>
+   <button onclick="setTimer(60)">60 сек</button>
+   <button onclick="setTimer(90)">90 сек</button>
+   <button onclick="setTimer(120)">120 сек</button>
+  </div>
+ </div>
+</section>
+</main>
+
+<nav class="nav">
+ <button class="active" onclick="page('home',this)">⌂<br>Главная</button>
+ <button onclick="page('training',this)">◈<br>Тренировки</button>
+ <button onclick="page('rest',this)">◷<br>Отдых</button>
+ <button onclick="page('stats',this)">▥<br>Прогресс</button>
+</nav>
+
+<script>
+const plans=[
+ {day:"ПОНЕДЕЛЬНИК",name:"Дом — верх тела",mode:"home",ex:[
+  ["Жим штанги с пола","Грудь","4 × 8–12"],
+  ["Тяга штанги в наклоне","Спина","4 × 8–12"],
+  ["Жим гантелей стоя","Плечи","3 × 10–12"],
+  ["Подъём гантелей на бицепс","Бицепс","3 × 10–12"]]},
+ {day:"ВТОРНИК",name:"Улица — верх тела",mode:"street",ex:[
+  ["Подтягивания","Спина","4 × 6–10"],
+  ["Отжимания на брусьях","Грудь / трицепс","4 × 8–12"],
+  ["Подъём коленей в висе","Пресс","3 × 12–15"]]},
+ {day:"ЧЕТВЕРГ",name:"Дом — низ тела",mode:"home",ex:[
+  ["Приседания с гантелями","Ноги","4 × 10–12"],
+  ["Румынская тяга со штангой","Бёдра","3 × 10–12"],
+  ["Выпады с гантелями","Ноги","3 × 10"],
+  ["Скручивания","Пресс","3 × 15"]]},
+ {day:"СУББОТА",name:"Улица — всё тело",mode:"street",ex:[
+  ["Подтягивания","Спина","3 × 6–10"],
+  ["Отжимания на брусьях","Грудь / трицепс","3 × 8–12"],
+  ["Приседания","Ноги","3 × 15"],
+  ["Подъём коленей в висе","Пресс","3 × 12"]]}
+];
+
+let data=JSON.parse(localStorage.getItem("ironData")||'{"logs":[],"done":[]}');
+let current=0,mode="home",seconds=90,interval=null;
+
+function save(){
+ localStorage.setItem("ironData",JSON.stringify(data));
+ update();
+}
+function page(id,btn){
+ document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+ if(btn)btn.classList.add("active");
+ if(id==="training")renderExercises();
+ update();
+}
+function renderDays(){
+ document.getElementById("days").innerHTML=plans.map((p,i)=>`
+ <div class="card day">
+  <div><span class="small">${p.day}</span><h3>${p.name}</h3>
+  <span class="tag">${p.mode==="home"?"HOME":"STREET"}</span></div>
+  <button onclick="openPlan(${i})">ОТКРЫТЬ</button>
+ </div>`).join("");
+}
+function openPlan(i){
+ current=i;mode=plans[i].mode;
+ page("training",document.querySelectorAll(".nav button")[1]);
+ renderExercises();
+}
+function changeMode(m){
+ mode=m;
+ document.getElementById("homeTab").classList.toggle("active",m==="home");
+ document.getElementById("streetTab").classList.toggle("active",m==="street");
+ renderExercises();
+}
+function renderExercises(){
+ const p=plans[current];
+ let selected=plans.filter(x=>x.mode===mode);
+ if(!selected.includes(p))current=plans.indexOf(selected[0]);
+ const plan=plans[current];
+ document.getElementById("workTitle").textContent=mode==="home"?"HOME WORKOUT":"STREET WORKOUT";
+ document.getElementById("exerciseList").innerHTML=plan.ex.map((e,i)=>{
+ let key=current+"-"+i;
+ let n=data.done.filter(x=>x.key===key).length;
+ return `<div class="exercise">
+  <div class="exercise-top"><div><h3>${e[0]}</h3><span class="small">${e[1]} · ${e[2]}</span></div>
+  <span class="tag">${n} / ${parseInt(e[2])} подходов</span></div>
+  <div class="fields">
+   <label class="small">Вес, кг<input type="number" min="0" step="0.5" id="w${i}" placeholder="${mode==="home"?"Вес":"Без веса"}"></label>
+   <label class="small">Повторения<input type="number" min="1" id="r${i}" placeholder="Повторы"></label>
+  </div>
+  <button class="check full" onclick="addSet(${i})">+ ЗАСЧИТАТЬ ПОДХОД</button>
+ </div>`;
+ }).join("");
+}
+function addSet(i){
+ let w=document.getElementById("w"+i).value;
+ let r=document.getElementById("r"+i).value;
+ if(!r||Number(r)<1){alert("Укажи количество повторений");return}
+ data.done.push({key:current+"-"+i,exercise:plans[current].ex[i][0],weight:w||"0",reps:r,date:new Date().toLocaleDateString()});
+ save();renderExercises();
+}
+function update(){
+ document.getElementById("total").textContent=data.logs.length;
+ document.getElementById("volume").textContent=data.done.length;
+ document.getElementById("records").textContent=new Set(data.done.map(x=>x.exercise)).size;
+ document.getElementById("statTotal").textContent=data.logs.length;
+ document.getElementById("statSets").textContent=data.done.length;
+ document.getElementById("history").innerHTML=data.logs.length?data.logs.slice().reverse().map(x=>`<div class="card"><b>${x.name}</b><p>${x.date}</p></div>`).join(""):"<p>Пока нет завершённых тренировок.</p>";
+ document.getElementById("weekbar").style.width=Math.min(data.logs.length%5,4)/4*100+"%";
+ document.getElementById("weektext").textContent=(data.logs.length%5)+" из 4 завершено";
+}
+function finish(){
+ if(!confirm("Завершить тренировку?"))return;
+ data.logs.push({name:plans[current].name,date:new Date().toLocaleDateString()});
+ save();alert("Тренировка завершена! Отличная работа.");
+ page("home",document.querySelector(".nav button"));
+}
+function setTimer(n){seconds=n;showClock();stopTimer()}
+function showClock(){document.getElementById("clock").textContent=String(Math.floor(seconds/60)).padStart(2,"0")+":"+String(seconds%60).padStart(2,"0")}
+function startTimer(){
+ if(interval)return;
+ interval=setInterval(()=>{
+  if(seconds>0){seconds--;showClock()}
+  else{stopTimer();alert("Время отдыха закончилось!")}
+ },1000);
+}
+function stopTimer(){clearInterval(interval);interval=null}
+renderDays();update();showClock();
+</script>
+</body>
+</html>
